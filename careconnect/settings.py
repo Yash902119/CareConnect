@@ -142,3 +142,6 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 # If email settings are not configured, use console backend for development
 if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# SMTP connection timeout (seconds) — fail fast if SMTP server is unreachable
+EMAIL_TIMEOUT = 10

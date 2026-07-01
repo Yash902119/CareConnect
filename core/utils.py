@@ -1,21 +1,20 @@
 """
 Utility functions for sending emails
 """
+import threading
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 
 
 def send_otp_email(email, otp_code, purpose='email_verification'):
     """
     Send OTP code via email
-    
+
     Args:
         email: Recipient email address
         otp_code: 6-digit OTP code
         purpose: Purpose of OTP ('email_verification' or 'password_reset')
-    
+
     Returns:
         bool: True if email sent successfully, False otherwise
     """
@@ -52,7 +51,7 @@ If you did not create an account with CareConnect, please ignore this email.
 Best regards,
 CareConnect Team
 """
-        
+
         # Send email
         send_mail(
             subject=subject,
@@ -61,33 +60,49 @@ CareConnect Team
             recipient_list=[email],
             fail_silently=False,
         )
-        
+
         return True
-        
+
     except Exception as e:
         print(f"Error sending email to {email}: {str(e)}")
         return False
 
 
+def send_email_async(email, otp_code, purpose='email_verification'):
+    """
+    Send OTP email in a background thread so the web request is not blocked.
+    This prevents gunicorn worker timeouts caused by slow/hanging SMTP connections.
+    """
+    def _send():
+        try:
+            send_otp_email(email, otp_code, purpose)
+        except Exception as e:
+            print(f"[Async Email Error] {e}")
+
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
+    return True  # Always return True immediately; email sends in background
+
+
 def send_email_with_fallback(email, otp_code, purpose='email_verification'):
     """
-    Send email via SMTP, with console fallback for development
-    
+    Send email via SMTP (async), with console fallback for development.
+
     Args:
         email: Recipient email address
         otp_code: 6-digit OTP code
         purpose: Purpose of OTP
-    
+
     Returns:
-        bool: True if email sent successfully or fallback used, False otherwise
+        bool: True always (email is sent in background thread)
     """
-    # If using console backend, print OTP
+    # If using console backend, print OTP to logs
     if settings.EMAIL_BACKEND == 'django.core.mail.backends.console.EmailBackend':
         purpose_text = "Password Reset" if purpose == 'password_reset' else "Email Verification"
         print(f"\n{'='*50}")
         print(f"{purpose_text} OTP for {email}: {otp_code}")
         print(f"{'='*50}\n")
         return True
-    
-    # Try to send via SMTP
-    return send_otp_email(email, otp_code, purpose)
+
+    # Send via SMTP in a background thread (non-blocking)
+    return send_email_async(email, otp_code, purpose)

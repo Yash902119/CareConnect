@@ -119,6 +119,16 @@ SESSION_COOKIE_AGE = 86400  # 24 hours
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
+# CSRF Trusted Origins (required for production behind HTTPS proxies like Railway)
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://careconnect-production-edcd.up.railway.app',
+]
+_extra_origin = os.getenv('CSRF_TRUSTED_ORIGIN')
+if _extra_origin:
+    CSRF_TRUSTED_ORIGINS.append(_extra_origin)
+
 # Email Configuration (SMTP)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')

@@ -165,12 +165,31 @@ def search_hospitals(request):
             hospital_dict['latitude'] = float(hospital.latitude)
             hospital_dict['longitude'] = float(hospital.longitude)
         else:
-            # Generate approximate coordinates based on city (fallback)
-            # This is a simple hash-based approach for demo - in production, use proper geocoding
-            city_hash = hash(hospital.city) % 1000
-            # Default to Mumbai area coordinates if no city match
-            hospital_dict['latitude'] = 19.0760 + (city_hash / 10000.0)
-            hospital_dict['longitude'] = 72.8777 + (city_hash / 10000.0)
+            # Generate approximate coordinates based on city and hospital name/id (fallback)
+            # Use md5 to keep it deterministic across interpreter restarts
+            import hashlib
+            h_bytes = f"{hospital.city}-{hospital.name}-{hospital.id}".encode('utf-8')
+            h = int(hashlib.md5(h_bytes).hexdigest(), 16)
+            
+            city_lower = hospital.city.lower().strip()
+            if 'pune' in city_lower:
+                base_lat, base_lng = 18.5204, 73.8567
+            elif 'mumbai' in city_lower:
+                base_lat, base_lng = 19.0760, 72.8777
+            elif 'delhi' in city_lower:
+                base_lat, base_lng = 28.6139, 77.2090
+            elif 'bangalore' in city_lower or 'bengaluru' in city_lower:
+                base_lat, base_lng = 12.9716, 77.5946
+            else:
+                # Default to Mumbai
+                base_lat, base_lng = 19.0760, 72.8777
+                
+            # Add small offset to spread out hospitals in the same city (up to ~1-2 km)
+            lat_offset = ((h % 100) - 50) / 4000.0
+            lng_offset = (((h // 100) % 100) - 50) / 4000.0
+            
+            hospital_dict['latitude'] = base_lat + lat_offset
+            hospital_dict['longitude'] = base_lng + lng_offset
         
         hospitals_list.append(hospital_dict)
     

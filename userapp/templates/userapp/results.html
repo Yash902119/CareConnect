@@ -992,6 +992,11 @@
                     marker.openPopup();
                 }
             }
+
+            // Invalidate size immediately so Leaflet knows the dimensions
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
         }
 
         // Create popup content for hospital marker
@@ -1042,6 +1047,10 @@
                 // Initialize map if not already initialized
                 if (!map) {
                     setTimeout(() => initMap(), 100);
+                } else {
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 100);
                 }
             } else {
                 document.getElementById('listViewContainer').classList.remove('hidden');

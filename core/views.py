@@ -326,6 +326,12 @@ def login(request):
         # Log in the user
         auth_login(request, authenticated_user)
         
+        # Clear any existing messages (like old logout messages) before adding welcome message
+        # We need to iterate through messages to actually clear them
+        storage = messages.get_messages(request)
+        for _ in storage:
+            pass  # Consuming messages by iterating
+        
         # Log activity
         ActivityLog.objects.create(
             user=user,
@@ -339,7 +345,7 @@ def login(request):
             # Check if user is assigned to a hospital
             hospital = Hospital.objects.filter(owner=user).first()
             if hospital:
-                messages.success(request, f"Welcome back, {hospital.name}!")
+                messages.success(request, "Successfully signed in")
                 return redirect('hospital:dashboard')
             else:
                 messages.warning(request, "You are not assigned to any hospital yet. Please contact the administrator.")
@@ -350,15 +356,19 @@ def login(request):
             # Check if user is assigned to an ambulance provider
             provider = AmbulanceProvider.objects.filter(owner=user).first()
             if provider:
-                messages.success(request, f"Welcome back, {provider.name}!")
+                messages.success(request, "Successfully signed in")
                 return redirect('ambulance:dashboard')
             else:
                 messages.warning(request, "You are not assigned to any ambulance provider yet. Please contact the administrator.")
                 auth_logout(request)
                 return redirect('core:login')
         else:
-            messages.success(request, f"Welcome back, {user.username}!")
+            messages.success(request, "Successfully signed in")
             return redirect('userapp:home')
+    
+    # GET request - check if user just logged out via URL parameter
+    if request.GET.get('logout') == 'success':
+        messages.success(request, 'You have successfully signed out')
     
     return render(request, 'core/login.html')
 
@@ -373,8 +383,10 @@ def logout(request):
             details='User logged out'
         )
     auth_logout(request)
-    messages.success(request, 'You have been logged out successfully')
-    return redirect('core:landing')
+    # Don't use messages.success - use URL parameter instead to avoid persistence
+    from django.urls import reverse
+    login_url = reverse('core:login') + '?logout=success'
+    return redirect(login_url)
 
 
 @require_http_methods(["GET", "POST"])

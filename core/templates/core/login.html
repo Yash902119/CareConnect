@@ -51,9 +51,11 @@
     <div class="secondary-link">
         Don't have an account? <a href="{% url 'core:signup' %}">Create Account</a>
     </div>
-    
+
     <div class="secondary-link" style="margin-top: 8px;">
-        <a href="{% url 'core:forgot_password' %}" style="color: #1976d2; text-decoration: none; font-weight: 500; transition: color 0.3s ease;" onmouseover="this.style.color='#1565c0'" onmouseout="this.style.color='#1976d2'">Forgot Password?</a>
+        <a href="{% url 'core:forgot_password' %}"
+            style="color: #1976d2; text-decoration: none; font-weight: 500; transition: color 0.3s ease;"
+            onmouseover="this.style.color='#1565c0'" onmouseout="this.style.color='#1976d2'">Forgot Password?</a>
     </div>
 </div>
 
@@ -68,5 +70,22 @@
             icon.textContent = '👁️';
         }
     }
+
+    // Auto-hide messages after 5 seconds
+    document.addEventListener('DOMContentLoaded', function () {
+        const messages = document.querySelectorAll('.alert');
+        messages.forEach(function (message) {
+            // Only auto-hide success and info messages, keep error/warning visible
+            if (message.classList.contains('alert-success') || message.classList.contains('alert-info')) {
+                setTimeout(function () {
+                    message.style.transition = 'opacity 0.5s ease-out';
+                    message.style.opacity = '0';
+                    setTimeout(function () {
+                        message.remove();
+                    }, 500); // Remove after fade out
+                }, 1000); // 1 second
+            }
+        });
+    });
 </script>
 {% endblock %}

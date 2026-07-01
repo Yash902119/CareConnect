@@ -123,6 +123,25 @@
         </main>
     </div>
 
+
+    <script>
+        // Auto-hide messages after 3 seconds
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach(function (message) {
+                // Only auto-hide success and info messages, keep error/warning visible
+                if (message.classList.contains('alert-success') || message.classList.contains('alert-info')) {
+                    setTimeout(function () {
+                        message.style.transition = 'opacity 0.5s ease-out';
+                        message.style.opacity = '0';
+                        setTimeout(function () {
+                            message.remove();
+                        }, 500); // Remove after fade out
+                    }, 1000); // 1 second
+                }
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 

@@ -30,8 +30,7 @@
                 <p>{{ facility.desc }}</p>
             </div>
             <label class="toggle-switch">
-                <input type="checkbox" name="{{ facility.id }}" value="1" {% if facility.name in current_facilities
-                    %}checked>
+                <input type="checkbox" name="{{ facility.id }}" value="1" {% if facility.name in current_facilities %}checked{% endif %}>
                 <span class="toggle-slider"></span>
             </label>
         </div>

@@ -10,6 +10,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from core.views import require_role
 from core.models import AmbulanceProvider, Ambulance, ActivityLog, User, Booking
+from django.utils import timezone
 from datetime import datetime
 
 
@@ -508,7 +509,7 @@ def dashboard_stats_api(request):
         'als_count': als_count,
         'bls_count': bls_count,
         'non_emergency_count': non_emergency_count,
-        'last_updated': provider.updated_at.strftime("%I:%M %p, %b %d, %Y")
+        'last_updated': timezone.localtime(timezone.now()).strftime("%I:%M %p, %b %d, %Y")
     }
     
     return JsonResponse(data)
